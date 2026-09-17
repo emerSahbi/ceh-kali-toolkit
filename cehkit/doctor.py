@@ -12,8 +12,9 @@ def register(subparsers):
 
 def run(args):
     dns_present = importlib.util.find_spec("dns") is not None
-    tools = {name: shutil.which(name) for name in ("nmap", "tshark")}
+    tools = {name: shutil.which(name) for name in ("nmap", "tshark", "nikto")}
     return {"platform": platform.platform(), "python": sys.version.split()[0], "dnspython": dns_present,
             "tools": tools, "core_ready": sys.version_info >= (3, 9) and dns_present and bool(tools["nmap"]),
             "kali_install": "sudo apt install python3 python3-dnspython nmap",
-            "optional_traffic_install": "sudo apt install tshark"}
+            "optional_traffic_install": "sudo apt install tshark",
+            "optional_web_scanner_install": "sudo apt install nikto"}

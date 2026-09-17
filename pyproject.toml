@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ceh-kali-toolkit"
-version = "1.0.0"
+version = "1.1.0"
 description = "Kali Linux reconnaissance, service enumeration, and assessment reporting tools"
 readme = "README.md"
 requires-python = ">=3.9"

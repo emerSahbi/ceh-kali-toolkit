@@ -1,6 +1,7 @@
 # Collected target data and generated reports
 /reports/
 /artifacts/
+*_artifacts_*/
 /captures/
 /output/
 /tmp/

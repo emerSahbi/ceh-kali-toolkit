@@ -50,6 +50,7 @@ If a privileged scan is needed from a virtual environment, use its interpreter e
 | Host and port discovery | `scan TARGET` | Nmap host discovery, TCP ports, and service information; optional UDP, OS hints, and traceroute |
 | Service enumeration | `enumerate TARGET` | Selected Nmap scripts for web, SSH, FTP, SMTP, SMB, LDAP, RDP, MySQL, and NFS |
 | Vulnerability review | `assess SCAN.xml` | Review saved Nmap results for exposed services and configuration indicators |
+| Active vulnerability checks | `vuln TARGET --type web\|host\|firewall\|tls` | Run target-specific scanners and optionally compare firewall reachability with expected allowed ports |
 | Web and session posture | `web-audit URL` | Review HTTP response headers, cookies, and transport configuration |
 | Traffic analysis | `traffic CAPTURE` | Summarize an existing packet capture using TShark |
 | Local system review | `system-audit` | Inspect local Linux configuration for hardening indicators |
@@ -66,6 +67,35 @@ python3 scripts/recon.py www.test.test --registration-domain test.test
 python3 scripts/scan.py 192.168.56.101 --top-ports 100
 python3 scripts/enumerate.py 192.168.56.101 --services web,ssh,smb
 ```
+
+## Vulnerability scans by target type
+
+Update an existing checkout with `git pull`, then install the website scanner:
+
+```bash
+bash scripts/install-kali.sh --with-nikto
+
+# A URL automatically selects the website profile.
+python3 -m cehkit vuln https://www.test.test -o reports/web-vuln.json
+
+# A server: selected Nmap vulnerability and configuration checks.
+python3 -m cehkit vuln 192.168.56.101 --type host -o reports/host-vuln.json
+
+# A firewall: inspect reachability from this machine and compare your policy.
+python3 -m cehkit vuln 192.168.56.1 --type firewall \
+  --ports 22,23,80,443,8080,8443 --allowed-tcp 80,443 \
+  --skip-host-discovery -o reports/firewall-vuln.json
+
+# A TLS service, including a nonstandard port.
+python3 -m cehkit vuln www.test.test --type tls --ports 8443
+
+# Preview selected commands without sending probes.
+python3 -m cehkit vuln https://www.test.test --dry-run
+```
+
+The website profile runs Nikto's file/configuration/information/software/service/administration checks, plus Nmap HTTP/TLS checks and the built-in web audit. The host profile checks selected TLS issues, SMB MS17-010, SMB signing, and anonymous FTP where matching services are reachable. The TLS profile checks certificates, cipher/protocol support, Heartbleed and CCS injection.
+
+The firewall profile checks selected TCP services and TLS exposure. `--allowed-tcp` is your expected list of reachable ports from this location; open ports outside it are reported as policy mismatches. Omit it for an exposure inventory, or use `--allowed-tcp none` when no tested TCP port should be reachable. This does not read appliance rules or automatically detect every vendor-specific firewall vulnerability. See [vulnerability scan details](docs/vulnerability-scanning.md) for coverage, defaults, and limitations.
 
 ## Example workflow
 

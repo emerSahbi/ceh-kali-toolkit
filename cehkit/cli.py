@@ -9,11 +9,11 @@ from .common import report_path, write_report
 
 
 def parser():
-    from . import recon, scanning, assessment, web_audit, traffic, system_audit, crypto, reporting, doctor
+    from . import recon, scanning, assessment, web_audit, traffic, system_audit, crypto, reporting, doctor, vulnerability
     root = argparse.ArgumentParser(prog="cehkit", description="Kali reconnaissance, enumeration and assessment toolkit")
     root.add_argument("--version", action="version", version=__version__)
     phases = root.add_subparsers(dest="command", required=True)
-    for module in (recon, scanning, assessment, web_audit, traffic, system_audit, crypto, reporting, doctor):
+    for module in (recon, scanning, assessment, vulnerability, web_audit, traffic, system_audit, crypto, reporting, doctor):
         module.register(phases)
     for command in phases.choices.values():
         command.add_argument("-o", "--output", type=Path, help="JSON output; matching Markdown saved alongside")

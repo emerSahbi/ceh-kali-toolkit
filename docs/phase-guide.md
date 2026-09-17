@@ -73,6 +73,10 @@ Assessment reads an existing Nmap XML file and highlights service exposure and c
 
 These checks are a starting point for manual review. They do not provide exhaustive CVE matching, authenticated patch inventory, exploitation, or proof of impact. Confirm the actual software build and configuration before reporting a suspected weakness as a verified vulnerability.
 
+## Active vulnerability checks by target type
+
+Use `python3 -m cehkit vuln TARGET --type web|host|firewall|tls` for active, selected vulnerability and configuration checks. URLs automatically select the web profile. Website scanning adds Nikto; install it with `bash scripts/install-kali.sh --with-nikto`. Firewall checks can compare observed reachability with `--allowed-tcp`, but do not establish full rulebase correctness or complete vendor CVE coverage. See the [vulnerability scan guide](vulnerability-scanning.md).
+
 ## 5. Web and session posture
 
 ```bash

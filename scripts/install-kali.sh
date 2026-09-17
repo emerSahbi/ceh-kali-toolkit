@@ -3,18 +3,21 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: bash scripts/install-kali.sh [--with-tshark]
+Usage: bash scripts/install-kali.sh [--with-tshark] [--with-nikto]
 
 Install Python 3, dnspython, and Nmap using APT.
 --with-tshark  Also install TShark for reading existing capture files.
               This script does not configure capture privileges.
+--with-nikto   Also install Nikto for website vulnerability scanning.
 USAGE
 }
 
 with_tshark=0
+with_nikto=0
 while (($#)); do
   case "$1" in
     --with-tshark) with_tshark=1 ;;
+    --with-nikto) with_nikto=1 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -38,6 +41,9 @@ fi
 packages=(python3 python3-dnspython nmap)
 if ((with_tshark)); then
   packages+=(tshark)
+fi
+if ((with_nikto)); then
+  packages+=(nikto)
 fi
 
 "${privilege[@]}" apt-get update
