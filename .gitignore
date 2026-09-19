@@ -2,6 +2,7 @@
 /reports/
 /artifacts/
 *_artifacts_*/
+*_phases_*/
 /captures/
 /output/
 /tmp/

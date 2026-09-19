@@ -3,9 +3,10 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: bash scripts/install-kali.sh [--with-tshark] [--with-nikto]
+Usage: bash scripts/install-kali.sh [--all] [--with-tshark] [--with-nikto]
 
-Install Python 3, dnspython, and Nmap using APT.
+Install dependencies and the cehkit command in /usr/local/bin.
+--all         Include both Nikto and TShark for all menu features.
 --with-tshark  Also install TShark for reading existing capture files.
               This script does not configure capture privileges.
 --with-nikto   Also install Nikto for website vulnerability scanning.
@@ -16,6 +17,7 @@ with_tshark=0
 with_nikto=0
 while (($#)); do
   case "$1" in
+    --all) with_tshark=1; with_nikto=1 ;;
     --with-tshark) with_tshark=1 ;;
     --with-nikto) with_nikto=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -50,6 +52,9 @@ fi
 "${privilege[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
 
 python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else "Python 3.9 or newer is required.")'
-printf '\nDependencies installed. From the repository directory, run:\n'
-printf '  python3 -m cehkit doctor\n'
-printf '  python3 -m cehkit --help\n'
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+"${privilege[@]}" python3 "$script_dir/install_app.py"
+printf '\nReady. Run from any directory:\n'
+printf '  cehkit\n'
+printf '  cehkit doctor\n'
+printf '  cehkit --help\n'

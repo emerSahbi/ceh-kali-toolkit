@@ -9,20 +9,30 @@ from .common import report_path, write_report
 
 
 def parser():
-    from . import recon, scanning, assessment, web_audit, traffic, system_audit, crypto, reporting, doctor, vulnerability
+    from . import recon, scanning, assessment, web_audit, traffic, system_audit, crypto, reporting, doctor, vulnerability, workflow
     root = argparse.ArgumentParser(prog="cehkit", description="Kali reconnaissance, enumeration and assessment toolkit")
     root.add_argument("--version", action="version", version=__version__)
     phases = root.add_subparsers(dest="command", required=True)
-    for module in (recon, scanning, assessment, vulnerability, web_audit, traffic, system_audit, crypto, reporting, doctor):
+    for module in (workflow, recon, scanning, assessment, vulnerability, web_audit, traffic, system_audit, crypto, reporting, doctor):
         module.register(phases)
+    phases.add_parser("menu", help="Open the interactive all-in-one menu")
     for command in phases.choices.values():
         command.add_argument("-o", "--output", type=Path, help="JSON output; matching Markdown saved alongside")
     return root
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if (not argv and sys.stdin.isatty()) or argv == ["menu"]:
+        from .menu import run_menu
+        return run_menu()
     arguments = parser()
+    if not argv:
+        arguments.print_help()
+        return 0
     args = arguments.parse_args(argv)
+    if args.command == "menu":
+        arguments.error("menu does not accept output options")
     try:
         output = report_path(args.command, args.output)
         args.output_path = output
@@ -35,7 +45,7 @@ def main(argv=None):
         write_report(output, envelope)
         print("Saved {} and {}".format(output, output.with_suffix(".md")))
         return 1 if result.get("error") or result.get("status") in ("error", "failed", "partial", "mismatch", "completed_with_errors") else 0
-    except (ValueError, OSError) as error:
+    except (ValueError, OSError, argparse.ArgumentTypeError) as error:
         print("Error: " + str(error), file=sys.stderr)
         return 2
     except KeyboardInterrupt:

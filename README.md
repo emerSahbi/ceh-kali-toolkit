@@ -1,6 +1,6 @@
 # CEH Kali Toolkit
 
-A Python toolkit for practical reconnaissance, host and service discovery, enumeration, and evidence reporting in Kali Linux. Each phase has its own command and produces structured results you can keep together in an engagement folder.
+An all-in-one Python tool for reconnaissance, host and service discovery, enumeration, vulnerability checks, and evidence reporting in Kali Linux. Launch `cehkit` to choose a phase from an interactive menu, or use `cehkit run` for a combined assessment. Individual commands remain available for scripting.
 
 The toolkit covers the discovery and assessment work described below. It is not an implementation of every CEH topic or a complete vulnerability scanner. See the [phase guide](docs/phase-guide.md) for coverage and limitations.
 
@@ -9,13 +9,15 @@ The toolkit covers the discovery and assessment work described below. It is not 
 ```bash
 git clone https://github.com/emerSahbi/ceh-kali-toolkit.git
 cd ceh-kali-toolkit
-bash scripts/install-kali.sh
-python3 -m cehkit doctor
+bash scripts/install-kali.sh --all
+cehkit
 ```
 
 For a private repository, clone through an authenticated GitHub CLI session or an SSH key that has access to the repository. Do not put an account password or access token in a clone URL or a command saved to shell history.
 
-The installer installs `python3`, `python3-dnspython`, and `nmap` through APT. Run commands from the repository directory. Python 3.9 or newer is required. To install dependencies manually:
+The installer installs Python, dnspython, and Nmap through APT, copies the application into `/opt/ceh-kali-toolkit/<version>`, and creates `/usr/local/bin/cehkit`. `--all` also installs Nikto and TShark for website scanning and capture analysis. The command works from any directory; reports are saved relative to your current directory. Python 3.9 or newer is required.
+
+For core features only, omit `--all`. To update an existing installation, run `git pull` in the checkout and rerun the installer. Installed versions are snapshots of the checkout; older version directories are retained. You can also run `python3 -m cehkit` directly from the checkout without installing the launcher. To install core dependencies manually:
 
 ```bash
 sudo apt update
@@ -46,6 +48,8 @@ If a privileged scan is needed from a virtual environment, use its interpreter e
 
 | Phase | Command | Purpose |
 | --- | --- | --- |
+| Interactive menu | `menu` or just `cehkit` | Choose a phase and enter its settings interactively |
+| Guided assessment | `run TARGET --type auto\|web\|host\|firewall\|tls` | Run applicable phases and produce one combined report |
 | Footprinting and reconnaissance | `recon DOMAIN` | DNS, registration information, website metadata, and published email addresses; optional subdomain discovery |
 | Host and port discovery | `scan TARGET` | Nmap host discovery, TCP ports, and service information; optional UDP, OS hints, and traceroute |
 | Service enumeration | `enumerate TARGET` | Selected Nmap scripts for web, SSH, FTP, SMTP, SMB, LDAP, RDP, MySQL, and NFS |
@@ -58,7 +62,23 @@ If a privileged scan is needed from a virtual environment, use its interpreter e
 | Reporting | `report REPORT.json ...` | Combine saved toolkit reports |
 | Environment checks | `doctor` | Check the interpreter and supporting tools |
 
-Use `python3 -m cehkit --help` and `python3 -m cehkit COMMAND --help` for the full interface. Every command accepts `-o PATH` / `--output PATH` for its JSON report.
+Use `cehkit --help` and `cehkit COMMAND --help` for the full interface. Assessment commands accept `-o PATH` / `--output PATH` for their JSON reports. With no arguments, `cehkit` opens the menu in a terminal and prints help when input is redirected. `cehkit menu` explicitly opens the menu.
+
+## One-command assessment
+
+Choose menu option **1** or run:
+
+```bash
+cehkit run https://www.test.test --registration-domain test.test -o reports/website.json
+cehkit run 192.168.56.101 --type host --ports 22,80,443 -o reports/server.json
+cehkit run 192.168.56.1 --type firewall --allowed-tcp 80,443 --skip-host-discovery
+cehkit run www.test.test --type tls --ports 8443
+cehkit run https://www.test.test --dry-run
+```
+
+URLs select the web profile automatically; domains and IPs select the host profile unless you choose another type. Domains first receive reconnaissance. Host assessments then run service enumeration; every profile runs its selected vulnerability checks. The tool combines the phase results into JSON and Markdown, retaining individual reports and raw scanner output in a sibling directory. Missing tools or incomplete phases produce a nonzero exit status and remain visible in the combined report.
+
+Firewall mode tests reachable services from your Kali machine and can compare them with the ports you expect to be allowed. It cannot infer a firewall's role or read its rules. Offline files, packet captures, hashes, and local system audits are separate menu choices because they need their own inputs. Subdomain discovery is optional under reconnaissance rather than automatically broadening a guided assessment.
 
 Separate scripts are also available in `scripts/`: `recon.py`, `scan.py`, `enumerate.py`, `assess.py`, `web_audit.py`, `traffic.py`, `system_audit.py`, `hash.py`, and `report.py`. They use the same arguments as their corresponding commands. For example:
 
@@ -158,7 +178,7 @@ The default output is a timestamped JSON report and a readable Markdown companio
 
 Reconnaissance contacts DNS, registration services, and the target website. Subdomain discovery and enumeration make additional requests. Published email discovery collects visible addresses; an address appearing in a page or record does not confirm that its mailbox exists. A successful command can contain individual lookup or service errors, so inspect the report as well as the command's exit status.
 
-The default TCP scan uses Nmap connect scanning and does not require root. Subnet size, DNS and HTTP timeouts, page count, candidate count, and scan runtime are bounded by command options. Scan and enumeration accept `--host-timeout` and `--command-timeout` in seconds. `--dry-run` is available on `recon`, `scan`, and `enumerate` for reviewing work before network requests. Traffic analysis defaults to 10,000 packets and a 120-second runtime limit.
+The default TCP scan uses Nmap connect scanning and does not require root. Subnet size, DNS and HTTP timeouts, page count, candidate count, and scan runtime are bounded by command options. Scan and enumeration accept `--host-timeout` and `--command-timeout` in seconds. `--dry-run` is available on `run`, `recon`, `scan`, `enumerate`, and `vuln` for reviewing work before network requests. Traffic analysis defaults to 10,000 packets and a 120-second runtime limit.
 
 Findings from service banners, headers, and local settings are review indicators. A detected version or an open port alone does not prove a vulnerability. Firewall filtering, authentication, TLS failures, and insufficient local permissions can limit observations.
 
