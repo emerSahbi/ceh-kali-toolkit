@@ -28,7 +28,7 @@ def register(subparsers):
     p.add_argument("--reason", action="store_true")
     p.add_argument("--traceroute", action="store_true")
     p.add_argument("--ipv6", action="store_true")
-    p.add_argument("--no-dns", action="store_true")
+    p.add_argument("--resolve-dns", action="store_true", help="Resolve hostnames (-R); default is -n")
     p.add_argument("--max-hosts", type=positive_int, default=256)
     p.add_argument("--command-timeout", type=positive_int, default=900)
     p.add_argument("--dry-run", action="store_true")
@@ -45,7 +45,7 @@ def build_command(args, artifacts):
         raise ValueError("Choose --ports or --top-ports, not both")
     if "/" in args.target and __import__("ipaddress").ip_network(args.target).num_addresses > args.max_hosts:
         raise ValueError("Target network exceeds --max-hosts")
-    command = ["nmap", "-n" if args.no_dns else "-R", "-" + args.timing, SCAN_TYPES[args.scan_type]]
+    command = ["nmap", "-R" if args.resolve_dns else "-n", "-" + args.timing, SCAN_TYPES[args.scan_type]]
     if args.udp: command.append("-sU")
     if args.ping == "Pn": command.append("-Pn")
     elif args.ping in ("PE","PP","PM","PR"): command.append("-" + args.ping)
