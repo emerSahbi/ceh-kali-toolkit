@@ -5,15 +5,16 @@ OPTIONS = (
     ("1", "Guided assessment (recon + selected scans + report)", "run"),
     ("2", "Reconnaissance / footprinting", "recon"),
     ("3", "Host and port scanning", "scan"),
-    ("4", "Service enumeration", "enumerate"),
-    ("5", "Vulnerability / firewall / TLS checks", "vuln"),
-    ("6", "Web headers and cookies", "web-audit"),
-    ("7", "Review saved Nmap XML", "assess"),
-    ("8", "Analyze a packet capture", "traffic"),
-    ("9", "Local Linux system audit", "system-audit"),
-    ("10", "Hash or verify a file", "hash"),
-    ("11", "Combine saved reports", "report"),
-    ("12", "Check installed tools", "doctor"),
+    ("4", "Custom Nmap reconnaissance scan", "nmap"),
+    ("5", "Service enumeration", "enumerate"),
+    ("6", "Vulnerability / firewall / TLS checks", "vuln"),
+    ("7", "Web headers and cookies", "web-audit"),
+    ("8", "Review saved Nmap XML", "assess"),
+    ("9", "Analyze a packet capture", "traffic"),
+    ("10", "Local Linux system audit", "system-audit"),
+    ("11", "Hash or verify a file", "hash"),
+    ("12", "Combine saved reports", "report"),
+    ("13", "Check installed tools", "doctor"),
 )
 
 
@@ -62,7 +63,20 @@ def build_arguments(command):
             zone = ask("Registered domain / DNS zone (blank = automatic)")
             if zone:
                 argv += ["--registration-domain", zone]
-    elif command in ("scan", "enumerate"):
+    elif command == "nmap":
+        argv.append(ask("Target domain, IP or CIDR"))
+        argv += ["--scan-type", ask("Scan type (sS,sT,sU,sN,sF,sX,sA)", "sT")]
+        ports = ask("Ports (blank = default)")
+        if ports: argv += ["--ports", ports]
+        ping = ask("Host discovery (default,Pn,PE,PP,PM,PR,none)", "default")
+        if ping != "default": argv += ["--ping", ping]
+        if yes("Fragment packets (-f)", False): argv.append("--fragment")
+        if yes("Enable service/version detection (-sV)", False): argv.append("--version-detect")
+        if yes("Enable OS detection (-O)", False): argv.append("--os-detect")
+        scripts = ask("NSE scripts or category (blank = none)")
+        if scripts: argv += ["--scripts", scripts]
+        timing = ask("Timing template T0-T5", "T3")
+        if timing != "T3": argv += ["--timing", timing]
         argv.append(ask("Target domain, IP or CIDR"))
         ports = ask("TCP ports (blank = top 1000)")
         if ports:
@@ -97,7 +111,7 @@ def build_arguments(command):
             raise ValueError("At least one report is required")
     elif command == "system-audit":
         argv += ["--root", ask("Linux filesystem root", "/")]
-    if command in ("run", "recon", "scan", "enumerate", "vuln") and yes("Preview commands only", False):
+    if command in ("run", "recon", "scan", "nmap", "enumerate", "vuln") and yes("Preview commands only", False):
         argv.append("--dry-run")
     if "--dry-run" not in argv:
         output = ask("Output JSON path (blank = timestamped report)")

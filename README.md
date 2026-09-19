@@ -52,6 +52,7 @@ If a privileged scan is needed from a virtual environment, use its interpreter e
 | Guided assessment | `run TARGET --type auto\|web\|host\|firewall\|tls` | Run applicable phases and produce one combined report |
 | Footprinting and reconnaissance | `recon DOMAIN` | DNS, registration information, website metadata, and published email addresses; optional subdomain discovery |
 | Host and port discovery | `scan TARGET` | Nmap host discovery, TCP ports, and service information; optional UDP, OS hints, and traceroute |
+| Custom Nmap reconnaissance | `nmap TARGET` | Combine probe type, `-Pn`, fragmentation, timing, scripts, ports, OS/version detection, and output options |
 | Service enumeration | `enumerate TARGET` | Selected Nmap scripts for web, SSH, FTP, SMTP, SMB, LDAP, RDP, MySQL, and NFS |
 | Vulnerability review | `assess SCAN.xml` | Review saved Nmap results for exposed services and configuration indicators |
 | Active vulnerability checks | `vuln TARGET --type web\|host\|firewall\|tls` | Run target-specific scanners and optionally compare firewall reachability with expected allowed ports |

@@ -32,7 +32,7 @@ class MenuTests(unittest.TestCase):
             launch.assert_called_once_with()
 
     def test_menu_retries_and_dispatches_argument_list(self):
-        with patch("builtins.input", side_effect=["bad", "12", "folder with spaces/result.json", "0"]), contextlib.redirect_stdout(io.StringIO()):
+        with patch("builtins.input", side_effect=["bad", "13", "folder with spaces/result.json", "0"]), contextlib.redirect_stdout(io.StringIO()):
             calls = []
             self.assertEqual(menu.run_menu(lambda argv: calls.append(argv) or 0), 0)
         self.assertEqual(calls, [["doctor", "-o", "folder with spaces/result.json"]])
